@@ -6,6 +6,15 @@ using namespace sujinikuRpgRuntimeCpp;
 
 [STAThreadAttribute]
 int main() {
+
+
+
+
+
+
+
+
+
 	Application::Run(gcnew MyForm());
 
 	MessageBox::Show("ゲームを終了しています・・・");
