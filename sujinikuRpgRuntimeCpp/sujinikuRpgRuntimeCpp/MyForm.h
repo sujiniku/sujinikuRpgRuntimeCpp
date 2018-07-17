@@ -44,6 +44,26 @@ namespace sujinikuRpgRuntimeCpp {
 
 		static int key_nokori ;
 
+
+
+
+		static int chx;
+		static int chy;
+
+		static int saisyo_x = 3;
+		static int saisyo_y = 4;
+
+		// マップのサイズの変数
+		static int map_x_size = 10;
+		static int map_y_size = 7;
+
+
+
+		// 進行先の壁判定のアルゴリズム用の変数
+		static int desti_x; // 進行先の壁判定のためのx座標変数
+		static int desti_y; // 進行先の壁判定のためのx座標変数
+
+
 	public:
 		MyForm(void)
 		{
@@ -80,7 +100,8 @@ namespace sujinikuRpgRuntimeCpp {
 
 
 
-
+			chx = saisyo_x;
+			chy = saisyo_y;
 
 
 
@@ -131,6 +152,7 @@ namespace sujinikuRpgRuntimeCpp {
 			this->AutoScaleMode = System::Windows::Forms::AutoScaleMode::Font;
 			this->ClientSize = System::Drawing::Size(624, 442);
 			this->Controls->Add(this->panel1);
+			this->DoubleBuffered = true;
 			this->Name = L"MyForm";
 			this->Text = L"MyForm";
 			this->Load += gcnew System::EventHandler(this, &MyForm::MyForm_Load);
@@ -149,6 +171,7 @@ namespace sujinikuRpgRuntimeCpp {
 
 	private: System::Void panel1_Paint(System::Object^  sender, System::Windows::Forms::PaintEventArgs^  e) {
 
+		this->DoubleBuffered = true;
 
 		// Create solid brush.
 		SolidBrush^ blueBrush = gcnew SolidBrush(Color::Azure); // コマンド背景色
@@ -238,8 +261,8 @@ namespace sujinikuRpgRuntimeCpp {
 
 		else if (mode_scene == 2) { // もし「はじめから」なら・・・。
 			
-			// Image^ mapchip_image = Image::FromFile("mapchip_grass.png "); // Image型で宣言。消したらダメ
-			// e->Graphics->DrawImage (mapchip_image, 225 + 32, 140 + 32, 32, 32);
+			Image^ mapchip_image = Image::FromFile("mapchip_grass.png "); // Image型で宣言。消したらダメ
+			e->Graphics->DrawImage (mapchip_image, 225 + 32, 140 + 32, 32, 32);
 
 
 			int messageWindow_x = 80;
@@ -267,8 +290,56 @@ namespace sujinikuRpgRuntimeCpp {
 		}
 
 		
-		if (mode_scene == 3) { // メッセージのウィンドウを消す
-			
+		if (mode_scene == 3) { // マップ移動モード
+
+			// マップのデータ // [y.x]
+			int maptable[7][10] = {
+				{ 1,1,1,1,1,1,1,1,1,1 }, //0 x
+				{ 1,0,0,0,0,0,0,0,0,1 }, //1
+				{ 1,0,0,0,0,0,0,0,0,1 }, //2
+				{ 1,0,0,0,0,0,0,0,0,1 }, //3
+				{ 1,0,0,0,0,0,0,0,0,1 }, //4
+				{ 1,0,0,0,0,0,0,0,0,1 }, //5
+				{ 1,1,1,1,1,1,1,1,1,1 }  //6
+			};
+
+
+			// マップ上での主人公の画像を読み込み。こいつが移動する
+			Image^ hero_mapchip = Image::FromFile("hero_dot.png ");
+
+
+			Image^ mapchip_image = Image::FromFile("mapchip_grass.png "); // Image型で宣言。消したらダメ
+			// e->Graphics->DrawImage(mapchip_image, 225 + 32, 140 + 32, 32, 32);
+
+
+
+			// マップを描画
+
+			for (int x = 0; x <= 9; ++x)
+			{
+				for (int y = 0; y <= 6; ++y)
+				{
+					switch (maptable[y][x])
+					{
+					case (0):
+						mapchip_image = Image::FromFile("mapchip_grass.png ");
+						break;
+
+					case (1):
+						mapchip_image = Image::FromFile("mapchip_wall.png ");
+						break;
+					}
+					e->Graphics->DrawImage(mapchip_image, 225 + x * 32, 140 + y * 32, 32, 32);
+
+				}
+			}
+
+			// 主人公の位置を表示
+			e->Graphics->DrawImage(hero_mapchip, 320 + (chx - saisyo_x) * 32, 270 + (chy - saisyo_y) * (32));
+
+			// MessageBox::Show("パネル内部 \n" + chx.ToString() + "," + chy.ToString()); // デバッグ用メッセージ
+
+
 		}
 
 
@@ -414,12 +485,87 @@ namespace sujinikuRpgRuntimeCpp {
 				key_nokori = 0;
 				mode_scene = 3; //ここでモード遷移すると、「金100を手に入れた」の行が表示されなくなってしまう！
 			}
-
-				panel1->Invalidate();
-				key_nokori = 1;
-				nin_i = nin_i + 1; // 何かのカウント用。
+								
+			panel1->Invalidate();
+			nin_i = nin_i + 1; // 何かのカウント用。
 		}
 		// MessageBox::Show("キー処理の終了。"); // デバッグ用メッセージ
+
+
+
+
+		if (mode_scene == 3 && key_nokori > 0) {
+
+			int maptable[7][10] = {
+				{ 1,1,1,1,1,1,1,1,1,1 }, //0 x
+				{ 1,0,0,0,0,0,0,0,0,1 }, //1
+				{ 1,0,0,0,0,0,0,0,0,1 }, //2
+				{ 1,0,0,0,0,0,0,0,0,1 }, //3
+				{ 1,0,0,0,0,0,0,0,0,1 }, //4
+				{ 1,0,0,0,0,0,0,0,0,1 }, //5
+				{ 1,1,1,1,1,1,1,1,1,1 }  //6
+			};
+
+
+			// 進行先の座標に一時的に主人公の座標を代入
+			desti_x = chx;
+			desti_y = chy;
+
+
+			// 矢印キーが押されたら移動判定モードに遷移
+			if (e->KeyData == Keys::Right || e->KeyData == Keys::Left
+				|| e->KeyData == Keys::Up || e->KeyData == Keys::Down)
+			{
+				switch (e->KeyData)
+				{
+					// 押された矢印キーに応じて、移動先予定の座標を代入
+					case Keys::Right:
+						desti_x = chx + 1;
+						break;
+					case Keys::Left:
+						desti_x = chx - 1;
+						break;
+					case Keys::Up:
+						desti_y = chy - 1;
+						break;
+					case Keys::Down:
+						desti_y = chy + 1;
+						break;
+				}
+
+
+				//	移動可否の判定と、移動先座標の更新
+				if (desti_x >= 0 && desti_x < map_x_size && desti_y >= 0 && desti_y < map_y_size)
+				{
+					if (maptable[desti_y][desti_x] == 1) // 進行先が壁
+					{
+						desti_x = chx; // 移動先の破棄
+						desti_y = chy;
+					}
+					else if (maptable[desti_y][desti_x] != 1) // 進行先に移動可能
+					{
+						chx = desti_x;
+						chy = desti_y;
+						panel1->Invalidate(FALSE);
+					}			
+				}
+
+				
+			}
+
+
+
+
+		}
+
+
+
+		key_nokori = 1;
+
+
+
+
+
 	}
 	
 }
